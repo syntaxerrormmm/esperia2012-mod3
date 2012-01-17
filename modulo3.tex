@@ -90,7 +90,14 @@ ITIS «Paleocapa», Bergamo}
 
 \begin{frame}
   \frametitle{Indice}
-  \tableofcontents
+  \begin{columns}
+    \begin{column}{.5\textwidth}
+      \tableofcontents[sections={1-2}]
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \tableofcontents[sections={3}]
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \section{Dischi, partizioni, filesystems}
@@ -568,8 +575,6 @@ ITIS «Paleocapa», Bergamo}
   \frametitle{Disabilitare l'avvio --- Upstart}
 
   \begin{enumerate}[<+->]
-    \item Rimuovere o commentare le linee \texttt{start on \ldots} nel file
-      di configurazione
     \item Usare il file override:
       \begin{shell*}
         echo 'manual' > /etc/init/\alert{\param{servizio}}.override
@@ -595,10 +600,11 @@ ITIS «Paleocapa», Bergamo}
 \begin{frame}[t]
   \frametitle{Permessi sui file e directory}
 
-  \begin{shell}
+  \begin{shell}\small
     ls -lh\\
     total 0\\
-    \alert<4>{drwxr-xr-x}	2 \alert<2>{ubuntu}   \alert<3>{ubuntu}	  68B
+    \alert<4>{drwxr-xr-x}	2 \alert<2>{ubuntu}   \alert<3>{ubuntu}
+    {} 68B
     17 Gen 18:00  directory\\
     \alert<4>{-rw-r-{}-r-{}-}	1 \alert<2>{ubuntu}   \alert<3>{ubuntu}  464B
     17 Gen 18:00  file.txt
@@ -623,7 +629,7 @@ ITIS «Paleocapa», Bergamo}
   \end{block}}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[t]
   \frametitle{Modifica permessi: \texttt{chmod} --- Rappr.~simbolica}
 
   \begin{block}{Codici per gli utenti}
@@ -707,12 +713,12 @@ ITIS «Paleocapa», Bergamo}
 \begin{frame}
   \frametitle{Modificare permessi e proprietari da GUI}
   
-  Vediamone un esempio \textit{live}
+  Vediamone un esempio \textit{live}.
 \end{frame}
 
 \subsection{Gestione dei processi e del sistema}
 
-\begin{frame}
+\begin{frame}[t]
   \frametitle{Processi e sistema --- CLI}
   
   \begin{block}{Comandi principali}
@@ -726,8 +732,8 @@ ITIS «Paleocapa», Bergamo}
 
   \begin{block}{Filesystem virtuali}
     \begin{itemize}
-      \item \texttt{/proc} --- Processi
-      \item \texttt{/sys} --- Sistema
+      \item \texttt{/proc}, procfs --- Processi
+      \item \texttt{/sys}, sysfs --- Sistema
     \end{itemize}
   \end{block}
 \end{frame}
@@ -735,6 +741,44 @@ ITIS «Paleocapa», Bergamo}
 \begin{frame}
   \frametitle{Processi e sistema --- GUI}
   Vediamo \textit{Monitoraggio sistema} e \textit{Utilizzo disco}.
+\end{frame}
+
+\subsection{Gestione remota}
+
+\begin{frame}[t]
+  \frametitle{Gestione remota con \texttt{sshd}}
+  \begin{block}{Installazione del server}
+    \begin{shell}
+      sudo apt-get install openssh-server
+    \end{shell}
+  \end{block}
+
+  \onslide<2->
+  \begin{block}{Uso del client}
+    \begin{shell}
+      ssh \alert{\param{username}}@\alert{\param{hostname o indirizzo IP}}
+    \end{shell}
+  \end{block}
+  La porta standard è la 22
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{\texttt{sshd} e \texttt{screen}}
+
+    \begin{shell}
+      screen
+    \end{shell}
+    Quindi, potete \textit{staccare} la sessione di \texttt{screen} con
+    \texttt{Ctrl + A} e poi \texttt{d}.
+
+    \onslide<2->
+    Si può \textit{riattaccare} la sessione di \texttt{screen} utilizzando:
+    \begin{shell}
+      screen -r
+    \end{shell}
+    In caso di più sessioni aperte, lo stesso \texttt{screen} suggerirà quali
+    sono aperte e da che data e ora.
 \end{frame}
 
 \end{document}

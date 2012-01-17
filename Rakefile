@@ -21,6 +21,6 @@ rule '.pdf' => '.tex' do |t|
   sh %[xelatex #{basename}]
 end
 
-task :upload do
+task :upload => MAIN do
   sh %[scp modulo3.pdf r2d2:/srv/http/bglug/slides/modulo3.pdf]
 end
