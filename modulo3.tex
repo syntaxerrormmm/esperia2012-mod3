@@ -1,0 +1,615 @@
+\documentclass{beamer}
+\usepackage{mathspec,xunicode,xltxtra,graphicx,booktabs,siunitx}
+\sisetup{range-phrase = --}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,decorations,fit,shadows,positioning,shapes}
+
+%%% Pacchetti di uso comune per lingua, encoding di input e di font
+\usepackage{polyglossia}
+\setdefaultlanguage{italian}
+
+\setsansfont[Mapping=tex-text,Ligatures=Common,Numbers={Lining,Proportional}]{Ubuntu}
+\setmonofont[Mapping=tex-text,Scale=0.9]{Andale Mono}
+
+%%% Tema, stile di uncover, default overlay e colore di struttura
+\usetheme{Warsaw}
+\setbeamercovered{transparent}
+%\beamerdefaultoverlayspecification{<+->}
+\setbeamercolor{alerted text}{fg=structure}
+\definecolor{ubuntugray}{HTML}{333333}
+\definecolor{ubuntuorange}{HTML}{DD4818}
+\setbeamercolor{structure}{bg=ubuntugray,fg=ubuntuorange}
+\setbeamercolor{author in head/foot}{bg=ubuntugray}
+\setbeamercolor{subsection in head/foot}{bg=ubuntuorange}
+\setbeamercolor{section in head/foot}{bg=ubuntugray}
+
+%%% Definisco un po' di modifiche sulla bibliografia
+\setbeamertemplate{bibliography item}[triangle]
+%\setbeamercolor*{bibliography entry author}{fg=black}
+
+%%% Sovrascrive la definizione della footline per ottenerne una a due colonne
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,right]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor~~(\insertshortinstitute)\hspace*{2ex}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex]{title in head/foot}%
+    \hspace*{2ex}\usebeamerfont{title in head/foot}\insertshorttitle\hfill%
+    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex}
+  \end{beamercolorbox}}
+   \vskip0pt%
+}
+
+%%% Definisco shell (mostra console utente) e shell* (console di root)
+\setbeamercolor{shell snippet}{fg=lightgray,bg=black}
+\newenvironment{shell}{\par\vspace{.5em}\begin{beamercolorbox}[rounded=true,sep=.2em]{shell snippet}\ttfamily {\color{blue}\$}}{\end{beamercolorbox}}
+  \newenvironment{shell*}{\par\vspace{.5em}\begin{beamercolorbox}[rounded=true,sep=.2em]{shell snippet}\ttfamily {\color{red}\#}}{\end{beamercolorbox}}
+\newcommand{\urlify}[1]{{\color{blue}\url{#1}}}
+
+%%% Definisco snippet
+\newenvironment{snippet}[1]{\begin{block}{Estratto: \texttt{#1}}\ttfamily}{\end{block}}
+
+%%% Definisco param per migliorare la leggibilità dei parametri
+\newcommand{\param}[1]{$\langle$#1$\rangle$}
+
+%%% Definisco un tema per le definizioni con monospace
+\newenvironment{codedesc}
+  {\begin{description}\setbeamerfont{description item}{family=\ttfamily}}
+  {\end{description}}
+
+
+%%%% Struttura principale della presentazione %%%%
+
+%%% Global structure %%%  
+\title{Gestione del sistema e servizi}
+\subtitle{Modulo 3}
+
+\author[E.~Vavassori]{Emiliano Vavassori}
+\institute[BGlug]{\begin{minipage}{3cm}\centering
+  \includegraphics[width=3cm]{logo}
+\end{minipage}\quad\begin{minipage}{.5\textwidth}
+  Bergamo Linux Users Group\\
+  Circoscrizione n° 2, Largo Röntgen n° 3\\
+  Bergamo
+\end{minipage}}
+
+\date[18/01/2012]{18 gennaio 2012 --- Pausa didattica a.s.~2011/2012\\
+ITIS «Paleocapa», Bergamo}
+
+%%% Dovrò specificare un logo...
+% \pgfdeclareimage[height=0.5cm]{university-logo}{university-logo-filename}
+% \logo{\pgfuseimage{university-logo}}
+\logo{\includegraphics[width=2.5cm]{logo}}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Indice}
+  \tableofcontents
+\end{frame}
+
+\section{Dischi, partizioni, filesystems}
+\subsection{Dispositivi fisici}
+\begin{frame}[t]
+  \frametitle{Nomenclatura dischi}
+
+  \begin{block}{Schema generale}\ttfamily
+    /dev/\alert{\param{t}}d\alert{\param{a}}
+  \end{block}
+
+  \smallskip\onslide<2->
+  Esempi:
+  \begin{block}{IDE (PATA)}\ttfamily
+    /dev/hda, /dev/hdb, /dev/hdc \ldots
+  \end{block}
+  \smallskip
+  \begin{block}{SATA e SCSI}\ttfamily
+    /dev/sda, /dev/sdb, /dev/sdc \ldots
+  \end{block}
+
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Nomenclatura partizioni}
+  \begin{block}{Schema generale}\ttfamily
+    /dev/\alert{\param{t}}d\alert{\param{a}\param{n}}
+  \end{block}
+  \begin{block}{Tipo e numero}
+    Partizioni primarie: $1 \le n \le 4$\\
+    Partizioni logiche: $ n \ge 5$
+  \end{block}
+  \onslide<3->
+  Esempi:
+  \begin{block}{Sul primo disco SATA}\ttfamily
+    /dev/sda1, /dev/sda2, /dev/sda5, /dev/sda6
+  \end{block}
+
+\end{frame}
+
+\subsection{Dispositivi logici}
+
+\begin{frame}[t]
+  \frametitle{RAID --- Redundant Array of Indipendent Disks}
+
+  \begin{block}{Risultato}
+    Uno o più dischi logici (costituiti da più dischi fisici), con certe
+    caratteristiche di ridondanza e \textit{fault tolerance}.
+  \end{block}
+
+    \begin{itemize}[<+->]
+      \item JBOD: \textit{Just a Bunch Of Disks}
+      \item RAID 0: \textit{striping}
+      \item RAID 1: \textit{mirroring}
+      \item RAID 5
+      \item RAID 1+0 (10): \textit{striping} su più array di dischi in
+	\textit{mirroring}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{LVM --- Logical Volume Management}
+
+  \begin{block}{Risultato}
+    Uno o più partizioni logiche le cui dimensioni non sono limitate dalla
+    dimensione fisica dei dischi sottostanti, ridimensionabili a piacimento.
+  \end{block}
+
+    \begin{itemize}[<+->]
+      \item \textit{Physical Volume} (PV)
+      \item \textit{Volume Group} (VG)
+      \item \textit{Logical Volume} (LV)
+    \end{itemize}
+\end{frame}
+
+\subsection{Principali filesystem Unix}
+
+\begin{frame}
+  \frametitle{Filesystems --- \texttt{ext2}}
+
+  \begin{itemize}[<+->]
+    \item Nato nel 1993 e supportato dalla versione di Linux 0.96c
+    \item Non è \textit{journaling}
+    \item Raccomandato ancora per supporti flash e dischi SSD
+    \item Utilizzato spesso per le partizioni di boot per la sua longevità
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Filesystems --- \texttt{ext3}}
+  
+  \begin{itemize}[<+->]
+    \item Nato nel 1998 e incluso nel kernel dalla versione 2.4.15 (2001)
+    \item \textit{Journaling} (no checksum!)
+    \item Ingrandimento del filesystem \textit{online}
+    \item Fino a \num{32000} sottocartelle
+    \item Permette l'aggiornamento \textit{in place} da \texttt{ext2} 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Limiti di \texttt{ext2} e \texttt{ext3}}
+
+  \begin{center}
+    \begin{tabular}{ccc}
+      \toprule
+      \textbf{Dim.~blocco} & \textbf{Dim.~max file} & \textbf{Dim.~max FS}\\
+      \midrule
+      \SI{1}{\kibi\byte} & \SI{16}{\gibi\byte} & \SI{2}{\tebi\byte}\\
+      \SI{2}{\kibi\byte} & \SI{256}{\gibi\byte} & \SI{8}{\tebi\byte}\\
+      \SI{4}{\kibi\byte} & \SI{2}{\tebi\byte} & \SI{16}{\tebi\byte}\\
+      \SI{8}{\kibi\byte} & \SI{2}{\tebi\byte} & \SI{32}{\tebi\byte}\\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Filesystems --- \texttt{ext4}}
+
+  \begin{itemize}[<+->]
+    \item Ideato nel 2003 ma sviluppato dal 2006, presente dal kernel 2.6.28
+    \item \textit{Journaling} (con checksum)
+    \item Supporto a filesystem larghi (file max.~\SI{16}{\tebi\byte}, FS
+      max.~\SI{1}{\exbi\byte})
+    \item Fino a \num{64000} sottocartelle
+    \item Utilizzato in Android 2.3 \textit{Gingerbread} e in molte delle
+      distribuzioni moderne
+    \item Compatibile all'indietro con \texttt{ext2} e \texttt{ext3},
+      compatibile in avanti (con limiti) con \texttt{ext3}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Filesystems --- \texttt{btrfs}}
+
+  \begin{itemize}[<+->]
+    \item Sviluppato dal 2007 (Oracle), presente dal kernel 2.6.30
+    \item Deframmentazione \textit{online}
+    \item Dimensione massima file: \SI{16}{\exbi\byte}
+    \item Snapshot e sottovolumi
+    \item Checksum su data e metadata
+    \item Compressione trasparente
+    \item RAID 0, 1 e 1+0 a livello di filesystem
+    \item \textit{Scrub} in background
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Limitazioni di \texttt{btrfs}}
+  
+  \begin{itemize}[<+->]
+    \item Non esiste ancora un tool per il check del filesystem
+      (\texttt{btrfsck}; supporto sperimentale)
+    \item Limite sul numero di hardlink nella stessa directory:
+      \numrange{300}{600} link
+  \end{itemize}
+
+\end{frame}
+
+\subsection{Struttura delle directory}
+
+\begin{frame}
+  \frametitle{Directory secondo FHS --- 1}
+
+  \begin{block}{FHS}
+    Filesystem Hierarchy Standard
+  \end{block}
+
+  \begin{codedesc}
+    \setbeamerfont{description item}{family=\ttfamily}
+    \item[/] Directory radice (prima gerarchia)
+    \item[/root/] Home dell'utente \alert{root}
+    \item[/bin/] Eseguibili necessari in \textit{single user mode}
+    \item[/sbin/] Eseguibili necessari per il sistema
+    \item[/lib/] Librerie essenziali per gli eseguibili in
+      /bin e \texttt{/sbin}
+    \item[/boot/] File per i bootloader
+    \item[/dev/] Device
+    \item[/etc/] File di configurazione
+    \item[/home/] Home degli utenti
+  \end{codedesc}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Directory secondo FHS --- 2}
+  
+  \begin{codedesc}
+    \item[/media/] Punti di mount per device rimovibili
+    \item[/mnt/] Filesystem \emph{temporanei}
+    \item[/opt/] Software opzionali (non \textit{opensource})
+    \item[/srv/] Dati serviti dal sistema
+    \item[/tmp/] File temporanei (non conservati)
+    \item[/proc/] Filesystem virtuale per i processi
+    \item[/sys/] Filesystem virtuale per il sistema
+  \end{codedesc}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Directory secondo FHS --- 3 (\texttt{/usr})}
+  \begin{codedesc}
+    \item[/usr/] Programmi e dati per utenti e servizi (seconda
+      gerarchia)
+    \item[/usr/bin/] Programmi non necessari al sistema (multiutenti)
+    \item[/usr/sbin/] Servizi non necessari al sistema
+    \item[/usr/lib/] Librerie per i programmi in \texttt{/usr/bin}, \texttt{/usr/sbin}
+    \item[/usr/shared/] File invariabili, identici su architetture diverse
+    \item[/usr/local/] Programmi e dati locali, spesso compilati (terza gerarchia)
+    \item[/usr/include/] \textit{Include file standard}
+    \item[/usr/src/] Codici sorgenti (es.~kernel)
+  \end{codedesc}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Directory secondo FHS --- 4 (\texttt{/var})}
+  
+  \begin{description}
+    \item[\texttt{/var/}] File variabili
+    \item[\texttt{/var/tmp/}] File temporanei, conservati
+    \item[\texttt{/var/cache/}] Dati in cache
+    \item[\texttt{/var/lib/}] Dati persistenti modificati da programmi
+      (es.~database)
+    \item[\texttt{/var/log/}] File di log
+    \item[\texttt{/var/lock/}] File di lock
+    \item[\texttt{/var/run/}] Informazioni sul sistema dall'ultimo avvio
+  \end{description}
+\end{frame}
+
+\section{Introduzione alla CLI}
+\subsection{Terminali e console}
+
+\begin{frame}[t]
+  \frametitle{Terminali e console}\small
+  \begin{block}{Console}
+    È un sistema di input e visualizzazione per i messaggi di amministrazione
+    del sistema; è solitamente costituita da un monitor e da una tastiera
+  \end{block}
+  \onslide<2->
+  In ogni sistema Linux ci sono almeno quattro console virtuali, accessibili
+  con le combinazioni di tasti: \texttt{Ctrl + Alt + F\alert{\param{n}}}
+  \onslide<3->
+  \begin{block}{Terminale (emulatore di terminale)}
+    Permette di emulare un videoterminale su altre architetture grafiche
+  \end{block}
+
+  \onslide<4>
+  In generale, entrambe le modalità di controllo a linea di comando vi
+  offriranno la \alert{shell di login}
+
+\end{frame}
+
+\subsection{Interfacce utente}
+
+\begin{frame}
+  \frametitle{La shell}
+
+  \begin{block}{Shell}
+    Software che fornisce un'interfaccia agli utenti di un sistema operativo
+    per utilizzare i servizi forniti dal kernel
+  \end{block}
+
+  \onslide<2->
+  Una shell può essere sia una CLI (\textit{Command Line Interface}) o una GUI
+  (\textit{Graphical User Interface})
+
+  \medskip
+  \onslide<3->
+  La shell è solitamente \alert{\texttt{bash}}, nel caso di Ubuntu la GUI è
+  \alert{GNOME + Unity} 
+  
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Primi passi con \texttt{bash}}
+
+  \begin{block}{Comandi di base}
+    \begin{itemize}[<+->]
+      \item \texttt{ls}
+      \item \texttt{touch}
+      \item \texttt{cp}
+      \item \texttt{mv}
+      \item \texttt{rm}
+      \item \texttt{cd}
+      \item \texttt{mkdir}
+      \item \texttt{rmdir}
+    \end{itemize}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Aiuto! Non so cosa sto facendo!}
+
+  \begin{block}{Comandi di aiuto}
+    \begin{itemize}[<+->]
+      \item \texttt{apropos}
+      \item \texttt{man}
+      \item \texttt{info}
+      \item opzioni \texttt{-h} e \texttt{-{}-help}
+    \end{itemize}
+  \end{block}
+  
+\end{frame}
+
+\section{Sistema e servizi}
+
+\subsection{Avvio del sistema}
+
+\begin{frame}
+  \frametitle{Avvio di un sistema Linux}
+  \begin{center}
+  \begin{tikzpicture}[every node/.style={rounded
+    corners,rectangle,drop shadow,fill=ubuntuorange,draw=ubuntugray,text=white},
+    ->,>=stealth,auto,every shadow/.style={fill=ubuntugray,opacity=0.75}]
+    \node (bootloader) {Bootloader};
+    \onslide<2->
+    \node (kernel)  [below=of bootloader] {Kernel} edge[<-] (bootloader);
+    \onslide<3->
+    \node[ellipse] (upstart)  [below=of kernel] {Upstart} edge[<-] (kernel);
+    \onslide<4->
+    \node[ellipse] (sysv)  [below=of upstart] {SysV \texttt{rc}} edge[<-] (upstart);
+  \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\subsection{Gestione dei servizi}
+
+\begin{frame}
+  \frametitle{Ordine di avvio e arresto --- Upstart}
+
+  \begin{snippet}{/etc/init/cron.conf}
+    start on runlevel [2345]\\
+    stop on runlevel [!2345]
+  \end{snippet}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ordine di avvio e arresto --- SysV}
+  Basato su directory per runlevel (\texttt{/etc/rc\alert{\param{n}}.d})
+  al cui interno ci sono alcuni \alert{link simbolici}:\\
+  \texttt{\alert{K20}virtualbox-guest-utils}\\
+  \texttt{\alert{S25}bluetooth}
+  
+  \medskip
+  I link simbolici puntano a script in \texttt{/etc/init.d}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Avvio, riavvio e arresto --- CLI/Upstart}
+  
+  \begin{itemize}[<1->]
+    \item Avvio:
+      \begin{shell*}
+        start \alert{\param{servizio}}
+      \end{shell*}
+    \item Riavvio:
+      \begin{shell*}
+        restart \alert{\param{servizio}}
+      \end{shell*}
+    \item Arresto:
+      \begin{shell*}
+        stop \alert{\param{servizio}}
+      \end{shell*}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Avvio, riavvio e arresto --- CLI/SysV}
+  \begin{itemize}[<1->]
+    \item Avvio:
+      \begin{shell*}
+        service \alert{\param{servizio}} start
+      \end{shell*}
+    \item Riavvio:
+      \begin{shell*}
+        service \alert{\param{servizio}} restart
+      \end{shell*}
+    \item Arresto:
+      \begin{shell*}
+        service \alert{\param{servizio}} stop
+      \end{shell*}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Avvio, riavvio e arresto --- GUI}
+  
+  \begin{block}{Upstart}
+    \texttt{jobs-admin}
+    \begin{shell}
+      sudo apt-get install jobs-admin
+    \end{shell}
+  \end{block}
+  \onslide<1->
+  \begin{block}{SysV}
+    \texttt{bum} --- Boot Up Manager
+    \begin{shell}
+      sudo apt-get install bum
+    \end{shell}
+  \end{block}
+\end{frame}
+
+\subsection{Servizi principali}
+
+\begin{frame}
+  \frametitle{Servizi principali --- Generale}
+
+  \begin{codedesc}
+  \item[cron] Esegue task programmati (\texttt{anacron}, \texttt{crond},
+    \texttt{atd})
+  \item[syslog] Logger di sistema (raccoglie messaggi dal sistema)
+    (\texttt{rsyslog})
+  \item[acpid] Gestione di eventi hardware
+  \item[dbus] \textit{Message Bus System}
+  \item[udev] Gestore dei device (hotplug, coldplug)
+  \item[networking] Gestione delle interfacce di rete
+  \item[hwclock] Gestione dell'orologio hardware del sistema
+  \item[ufw] Ubuntu Firewall (disabilitato)
+  \end{codedesc}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Servizi principali --- Desktop}
+  
+  \begin{codedesc}
+  \item[pulseaudio] Gestione dell'audio di sistema
+  \item[bluetooth] Gestione dei dispositivi Bluetooth
+  \item[cups] Server di stampa
+  \item[saned] Server per le scansioni
+  \end{codedesc}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Servizi principali --- Server}
+  
+  \begin{codedesc}
+  \item[apache2] Server Web
+  \item[mysql] Database server MySQL
+  \item[ssh] Server \textit{Secure SHell} (SSH)
+  \item[openntpd] Server per la sincronizzazione dell'ora
+  \item[slapd] Server di directory LDAP
+  \item[squid] Proxy Server
+  \item[samba] Condivisione file \textit{Short Message Block} (SMB, usato da
+    client Windows)
+  \item[nfs-common] Condivisione file \textit{Network File System} (NFS)
+  \end{codedesc}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Sicurezza e servizi}
+
+  \begin{block}{Avvertimento}
+    Un servizio attivo ma che non è in uso è un potenziale pericolo per la
+    sicurezza del sistema, soprattutto se è in ascolto su porte TCP o UDP!
+  \end{block}
+
+  \onslide<2->
+  \begin{block}{Consiglio}
+    Potete sempre verificare le porte aperte con \texttt{netstat}:
+    \begin{shell}
+      netstat -lntu
+    \end{shell}
+  \end{block}
+  
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Disabilitare l'avvio --- Upstart}
+
+  \begin{enumerate}[<+->]
+    \item Rimuovere o commentare le linee \texttt{start on \ldots} nel file
+      di configurazione
+    \item Usare il file override:
+      \begin{shell*}
+        echo 'manual' > /etc/init/\alert{\param{servizio}}.override
+      \end{shell*}
+    \item Usare il file di configurazione (fare backup del vecchio conf!)
+      \begin{shell*}
+        mv /etc/init/\alert{\param{servizio}}.conf\{,.bak\}; \textbackslash\\
+        \quad echo 'manual' > /etc/init/\alert{\param{servizio}}.conf
+      \end{shell*}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Disabilitare l'avvio --- SysV}
+  
+  \begin{shell*}
+    update-rc.d -f \alert{\param{servizio}} remove
+  \end{shell*}
+\end{frame}
+
+\subsection{Permessi su file e directory}
+
+\begin{frame}
+  \frametitle{Permessi sui file e directory --- 1}
+
+  \begin{shell}
+    ls -lh\\
+    total 0\\
+    \alert<4>{drwxr-xr-x}	2 \alert<2>{ubuntu}   \alert<3>{ubuntu}	  68B
+    17 Gen 18:00  directory\\
+    \alert<4>{-rw-r--r--}	1 \alert<2>{ubuntu}   \alert<3>{ubuntu}  464B
+    17 Gen 18:00  file.txt
+  \end{shell}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Permessi sui file e directory --- 2}
+
+\end{frame}
+
+\end{document}
