@@ -66,7 +66,6 @@
 \title{Gestione del sistema e servizi}
 \subtitle{Modulo 3}
 
-\author[E.~Vavassori]{Emiliano Vavassori}
 \institute[BGlug]{\begin{minipage}{3cm}\centering
   \includegraphics[width=3cm]{logo}
 \end{minipage}\quad\begin{minipage}{.5\textwidth}
@@ -593,23 +592,121 @@ ITIS «Paleocapa», Bergamo}
 
 \subsection{Permessi su file e directory}
 
-\begin{frame}
-  \frametitle{Permessi sui file e directory --- 1}
+\begin{frame}[t]
+  \frametitle{Permessi sui file e directory}
 
   \begin{shell}
     ls -lh\\
     total 0\\
     \alert<4>{drwxr-xr-x}	2 \alert<2>{ubuntu}   \alert<3>{ubuntu}	  68B
     17 Gen 18:00  directory\\
-    \alert<4>{-rw-r--r--}	1 \alert<2>{ubuntu}   \alert<3>{ubuntu}  464B
+    \alert<4>{-rw-r-{}-r-{}-}	1 \alert<2>{ubuntu}   \alert<3>{ubuntu}  464B
     17 Gen 18:00  file.txt
   \end{shell}
 
+  \only<2>{%
+  \begin{block}{Utente proprietario}
+    Tipicamente chi ha creato il file/directory.
+  \end{block}}
+
+  \only<3>{%
+  \begin{block}{Gruppo proprietario}
+    Solitamente il gruppo principale del proprietario. Viene usato per
+    concedere a più utenti permessi più ampi.
+  \end{block}}
+
+  \only<4>{%
+  \begin{block}{Permessi}
+    Da leggersi a gruppi di tre lettere e nell'ordine \texttt{r} (lettura,
+    \textit{read}), \texttt{w} (scrittura, \textit{write}) e \texttt{x}
+    (esecuzione, \textit{execute}).
+  \end{block}}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Permessi sui file e directory --- 2}
+  \frametitle{Modifica permessi: \texttt{chmod} --- Rappr.~simbolica}
 
+  \begin{block}{Codici per gli utenti}
+    \begin{center}
+      \begin{tabular}{l>{\ttfamily}c}
+	\toprule
+	\textbf{Utente} & \textsf{\bfseries Sigla}\\
+	\midrule
+	Utente proprietario (\textit{user}) & u\\
+	Gruppo proprietario (\textit{group}) & g\\
+	Altri utenti (\textit{others}) & o\\
+	Tutti i precedenti (\textit{all}) & a\\
+	\bottomrule
+      \end{tabular}
+    \end{center}
+  \end{block}
+
+  \onslide<2->
+  \begin{shell*}
+    chmod a+r u+w file.txt
+  \end{shell*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Modifica permessi: \texttt{chmod} --- Rappr.~ottale}
+
+  \begin{block}{Codici letterali ed ottali}
+    \begin{center}
+      \begin{tabular}{l>{\ttfamily}c>{\ttfamily}c}
+	\toprule
+	\textbf{Permesso} & \textsf{\bfseries Cod.~lett.} &
+	\textsf{\bfseries Cod.ottale}\\
+	\midrule
+	read & r & 4\\
+	write & w & 2\\
+	execute & x & 1\\
+	\bottomrule
+      \end{tabular}
+    \end{center}
+  \end{block}
+
+  \onslide<2->
+  \begin{shell*}
+    chmod 644 file.txt
+  \end{shell*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Esempi «sensati» di modifiche}
+  \begin{shell*}
+    chmod 644 file.txt
+  \end{shell*}
+
+  \begin{shell*}
+    chmod +x script.sh
+  \end{shell*}
+
+  \begin{shell*}
+    chmod a+rx ug+w directory
+  \end{shell*}
+
+  \begin{shell*}
+    chmod -R g+w directory/
+  \end{shell*}
+
+  \begin{shell*}
+    chmod 751 directory/
+  \end{shell*}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Modificare i proprietari --- \texttt{chown}}
+
+  \begin{shell*}
+    chown \alert<2>{ubuntu}:\alert<3>{ubuntu} file.txt
+  \end{shell*}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{Modificare permessi e proprietari da GUI}
+  
+  Vediamone un esempio \textit{live}
 \end{frame}
 
 \end{document}
