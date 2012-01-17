@@ -22,5 +22,5 @@ rule '.pdf' => '.tex' do |t|
 end
 
 task :upload => MAIN do
-  sh %[scp modulo3.pdf r2d2:/srv/http/bglug/slides/modulo3.pdf]
+  sh %[scp #{MAIN} r2d2:/srv/http/bglug/slides/#{MAIN}]
 end
